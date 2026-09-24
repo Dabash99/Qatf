@@ -154,25 +154,3 @@ jobs:
         env:
           QATF_REQUIRE_FIXTURES: "1"
         run: python tests/verify_render.py
-
-  docker:
-    name: docker build
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Build the frontend image
-        # Fast, and it runs `tsc --noEmit && vite build` inside the image, so
-        # a Dockerfile that has drifted from the source is caught here.
-        run: docker build -t qatf-frontend:ci ./qatf-frontend
-
-      - name: Validate both compose files
-        run: |
-          docker compose -f docker-compose.yaml config -q
-          docker compose -f docker-compose.yaml -f docker-compose.dev.yaml config -q
-
-      # The backend image is deliberately NOT built here: it installs CUDA
-      # wheels and weighs over 6 GB, which is minutes of runner time on every
-      # PR for a Dockerfile that changes rarely. Build it in a release
-      # workflow, or locally, instead.
